@@ -52,6 +52,18 @@ class UserDetailView(APIView):
         }
         return Response(content)
 
+class RegisterUser(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request, format=None):
+        serializer = UserSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({"token": token.key}, status=HTTP_200_OK)
+        return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
+
 class LoginView(APIView):
     authentication_classes = []
     permission_classes = []
