@@ -60,6 +60,8 @@ class RegisterUser(APIView):
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
+            user.is_active = True  # Ensure the user is active by default
+            user.save()  # Save the updated user instance
             token, _ = Token.objects.get_or_create(user=user)
             return Response({"token": token.key}, status=HTTP_200_OK)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
