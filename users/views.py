@@ -65,3 +65,10 @@ class LoginView(APIView):
             return Response({"token": token.key}, status=HTTP_200_OK)
         else:
             return Response({"error": "Invalid credentials"}, status=HTTP_400_BAD_REQUEST)
+        
+class BasicView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, format=None):
+        return Response({"message": "Hello, world!"}, status=HTTP_200_OK)
