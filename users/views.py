@@ -1,6 +1,3 @@
-# from django.shortcuts import render
-# from django.http import JsonResponse
-from rest_framework import generics
 from rest_framework.permissions import IsAuthenticated, IsAdminUser
 from rest_framework.authentication import SessionAuthentication, BasicAuthentication, TokenAuthentication
 from rest_framework.authtoken.models import Token
@@ -12,7 +9,6 @@ from django.core.exceptions import PermissionDenied
 from .models import User
 from .serializers import UserSerializer
 
-
 class UserListView(APIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
@@ -20,18 +16,13 @@ class UserListView(APIView):
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
 
     def get(self, request, format=None):
-        content = {
-            'id': str(request.user.id),
-            'user': str(request.user),
-            'firstName': str(request.user.firstName),
-            'lastName': str(request.user.lastName),
-            'zipCode': str(request.user.zipCode),
-        }
-        return Response(content)
+        users = User.objects.all()  # Fetch all users
+        serializer = self.serializer_class(users, many=True)  # Serialize the users
+        return Response(serializer.data)  # Return serialized data
 
 class UserDetailView(APIView):
     serializer_class = UserSerializer
-    permission_classes = [IsAuthenticated, IsAdminUser]
+    permission_classes = [IsAuthenticated]
     authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
 
     def get(self, request, pk, format=None):
@@ -62,8 +53,8 @@ class UserDetailView(APIView):
         return Response(content)
 
 class LoginView(APIView):
-    authentication_classes = []  # No authentication required for login
-    permission_classes = []  # No permissions required for login
+    authentication_classes = []
+    permission_classes = []
 
     def post(self, request, format=None):
         username = request.data.get("username")
