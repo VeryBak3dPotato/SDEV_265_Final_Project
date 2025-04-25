@@ -7,4 +7,8 @@ urlpatterns = [
     path('register/', RegisterUser.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
     path('', BasicView.as_view(), name='basic'),
+    path('users/<int:pk>/current/', WeatherCurrentView.as_view(), name='weather-current'),
+    path('users/<int:pk>/minutely/', WeatherMinutelyView.as_view(), name='weather-minutely'),
+    path('users/<int:pk>/hourly/', WeatherHourlyView.as_view(), name='weather-hourly'),
+    path('users/<int:pk>/daily/', WeatherDailyView.as_view(), name='weather-daily'),
 ]
