@@ -18,9 +18,9 @@ class UserListView(APIView):
     authentication_classes = [BasicAuthentication, TokenAuthentication]
 
     def get(self, request, format=None):
-        users = User.objects.all()  # Fetch all users
-        serializer = self.serializer_class(users, many=True)  # Serialize the users
-        return Response(serializer.data)  # Return serialized data
+        users = User.objects.all()
+        serializer = self.serializer_class(users, many=True)
+        return Response(serializer.data)
 
 class BaseUserDetailView(APIView):
     serializer_class = UserSerializer
@@ -28,7 +28,6 @@ class BaseUserDetailView(APIView):
     authentication_classes = [BasicAuthentication, TokenAuthentication]
 
     def get_user(self, pk):
-        # Fetch the user object based on the primary key
         try:
             user = User.objects.get(pk=pk)
         except User.DoesNotExist:
@@ -46,8 +45,8 @@ class UserDetailView(BaseUserDetailView):
         response = requests.get(url)
         return response.json()
 
-    def get_weather_data(self, lat, lon, api_key):
-        url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&appid={api_key}"
+    def get_weather_data(self, lat, lon, units, api_key):
+        url = f"https://api.openweathermap.org/data/3.0/onecall?lat={lat}&lon={lon}&units={units}&appid={api_key}"
         response = requests.get(url)
         return response.json()
 
@@ -59,7 +58,7 @@ class UserDetailView(BaseUserDetailView):
             return Response({"error": "User does not have a valid zip code."}, status=HTTP_400_BAD_REQUEST)
 
         geo_location = self.get_geo_location(user.zipCode, settings.API_KEY)
-        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.API_KEY)
+        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.UNITS, settings.API_KEY)
 
         content = {
             'id': user.id,
@@ -81,7 +80,7 @@ class WeatherCurrentView(UserDetailView):
             return Response({"error": "User does not have a valid zip code."}, status=HTTP_400_BAD_REQUEST)
         
         geo_location = self.get_geo_location(user.zipCode, settings.API_KEY)
-        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.API_KEY)
+        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.UNITS, settings.API_KEY)
 
         content = {
             'id': user.id,
@@ -101,7 +100,7 @@ class WeatherMinutelyView(UserDetailView):
             return Response({"error": "User does not have a valid zip code."}, status=HTTP_400_BAD_REQUEST)
         
         geo_location = self.get_geo_location(user.zipCode, settings.API_KEY)
-        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.API_KEY)
+        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.UNITS, settings.API_KEY)
 
         content = {
             'id': user.id,
@@ -121,7 +120,7 @@ class WeatherHourlyView(UserDetailView):
             return Response({"error": "User does not have a valid zip code."}, status=HTTP_400_BAD_REQUEST)
         
         geo_location = self.get_geo_location(user.zipCode, settings.API_KEY)
-        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.API_KEY)
+        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.UNITS, settings.API_KEY)
 
         content = {
             'id': user.id,
@@ -141,7 +140,7 @@ class WeatherDailyView(UserDetailView):
             return Response({"error": "User does not have a valid zip code."}, status=HTTP_400_BAD_REQUEST)
         
         geo_location = self.get_geo_location(user.zipCode, settings.API_KEY)
-        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.API_KEY)
+        weather_data = self.get_weather_data(geo_location['lat'], geo_location['lon'], settings.UNITS, settings.API_KEY)
 
         content = {
             'id': user.id,
@@ -217,10 +216,3 @@ class LogoutView(APIView):
             return Response({"message": "Successfully logged out."}, status=200)
         except Token.DoesNotExist:
             return Response({"error": "Token not found."}, status=400)
-
-# class HelloView(APIView):
-#     authentication_classes = []
-#     permission_classes = []
-
-#     def get(self, request, format=None):
-#         return Response({"message": "Hello my luv <3!"}, status=HTTP_200_OK)

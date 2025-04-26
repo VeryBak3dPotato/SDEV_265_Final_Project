@@ -132,20 +132,12 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = 'static/'
-# STATICFILES_DIRS = [
-#     BASE_DIR / 'static',
-# ]
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# Login and logout redirect fields
-
-# LOGIN_URL = '/login/'
-# LOGIN_REDIRECT_URL = '/'
-# LOGOUT_REDIRECT_URL = '/logout/'
 
 
 # Media files directory
@@ -161,4 +153,6 @@ REST_FRAMEWORK = {
     ]
 }
 
+# OpenWeatherMap API settings
 API_KEY="c58ea7e945d4713a281a6459d5cdac49"
+UNITS = "imperial"
