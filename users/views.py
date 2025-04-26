@@ -15,7 +15,7 @@ class UserListView(APIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated, IsAdminUser]
-    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
 
     def get(self, request, format=None):
         users = User.objects.all()  # Fetch all users
@@ -25,7 +25,7 @@ class UserListView(APIView):
 class BaseUserDetailView(APIView):
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
-    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
 
     def get_user(self, pk):
         # Fetch the user object based on the primary key
@@ -151,6 +151,32 @@ class WeatherDailyView(UserDetailView):
             'dailyWeather': weather_data["daily"],
         }
         return Response(content)
+
+class UpdateZipCodeView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [BasicAuthentication, TokenAuthentication]
+
+    def put(self, request, pk, format=None):
+        # Fetch the user to be updated
+        try:
+            user_to_update = User.objects.get(pk=pk)
+        except User.DoesNotExist:
+            return Response({"error": "User not found."}, status=HTTP_400_BAD_REQUEST)
+
+        # Check permissions: superusers can update any user, regular users can only update their own ZIP code
+        if not request.user.is_staff and request.user.id != user_to_update.id:
+            return Response({"error": "You do not have permission to update this user's ZIP code."}, status=403)
+
+        # Get the new ZIP code from the request data
+        new_zip_code = request.data.get("zipCode")
+        if not new_zip_code:
+            return Response({"error": "ZIP code is required."}, status=HTTP_400_BAD_REQUEST)
+
+        # Update the ZIP code
+        user_to_update.zipCode = new_zip_code
+        user_to_update.save()
+
+        return Response({"success": "ZIP code updated successfully.", "zipCode": user_to_update.zipCode}, status=HTTP_200_OK)
 
 class RegisterUser(APIView):
     authentication_classes = []
