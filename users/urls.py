@@ -10,5 +10,6 @@ urlpatterns = [
     path('users/<int:pk>/daily/', WeatherDailyView.as_view(), name='weather-daily'),
     path('register/', RegisterUser.as_view(), name='register'),
     path('login/', LoginView.as_view(), name='login'),
-    path('hello/', HelloView.as_view(), name='hello'),
+    path('logout/', LogoutView.as_view(), name='logout'),
+    # path('hello/', HelloView.as_view(), name='hello'),
 ]

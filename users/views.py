@@ -179,10 +179,23 @@ class LoginView(APIView):
             return Response({"success": "Successful authentication", "token": token.key}, status=HTTP_200_OK)
         else:
             return Response({"error": "Invalid credentials"}, status=HTTP_400_BAD_REQUEST)
-        
-class HelloView(APIView):
-    authentication_classes = []
-    permission_classes = []
 
-    def get(self, request, format=None):
-        return Response({"message": "Hello my luv <3!"}, status=HTTP_200_OK)
+class LogoutView(APIView):
+    permission_classes = [IsAuthenticated]
+    authentication_classes = [SessionAuthentication, BasicAuthentication, TokenAuthentication]
+
+    def post(self, request):
+        # Delete the user's token
+        try:
+            token = Token.objects.get(user=request.user)
+            token.delete()
+            return Response({"message": "Successfully logged out."}, status=200)
+        except Token.DoesNotExist:
+            return Response({"error": "Token not found."}, status=400)
+
+# class HelloView(APIView):
+#     authentication_classes = []
+#     permission_classes = []
+
+#     def get(self, request, format=None):
+#         return Response({"message": "Hello my luv <3!"}, status=HTTP_200_OK)
