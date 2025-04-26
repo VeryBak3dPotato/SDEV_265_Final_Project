@@ -152,20 +152,10 @@ class WeatherDailyView(UserDetailView):
         }
         return Response(content)
 
-class UpdateZipCodeView(APIView):
-    permission_classes = [IsAuthenticated]
-    authentication_classes = [BasicAuthentication, TokenAuthentication]
-
+class UpdateZipCodeView(UserDetailView):
     def put(self, request, pk, format=None):
-        # Fetch the user to be updated
-        try:
-            user_to_update = User.objects.get(pk=pk)
-        except User.DoesNotExist:
-            return Response({"error": "User not found."}, status=HTTP_400_BAD_REQUEST)
-
-        # Check permissions: superusers can update any user, regular users can only update their own ZIP code
-        if not request.user.is_staff and request.user.id != user_to_update.id:
-            return Response({"error": "You do not have permission to update this user's ZIP code."}, status=403)
+        user = self.get_user(pk)
+        self.check_user_permissions(request, user)
 
         # Get the new ZIP code from the request data
         new_zip_code = request.data.get("zipCode")
@@ -173,10 +163,10 @@ class UpdateZipCodeView(APIView):
             return Response({"error": "ZIP code is required."}, status=HTTP_400_BAD_REQUEST)
 
         # Update the ZIP code
-        user_to_update.zipCode = new_zip_code
-        user_to_update.save()
+        user.zipCode = new_zip_code
+        user.save()
 
-        return Response({"success": "ZIP code updated successfully.", "zipCode": user_to_update.zipCode}, status=HTTP_200_OK)
+        return Response({"success": "ZIP code updated successfully.", "zipCode": user.zipCode}, status=HTTP_200_OK)
 
 class RegisterUser(APIView):
     authentication_classes = []
