@@ -157,7 +157,6 @@ class UpdateZipCodeView(UserDetailView):
         user = self.get_user(pk)
         self.check_user_permissions(request, user)
 
-        # Get the new ZIP code from the request data
         new_zip_code = request.data.get("zipCode")
         if not new_zip_code:
             return Response({"error": "ZIP code is required."}, status=HTTP_400_BAD_REQUEST)
@@ -173,11 +172,21 @@ class RegisterUser(APIView):
     permission_classes = []
 
     def post(self, request, format=None):
+        required_fields = ["email", "password", "firstName", "lastName", "zipCode"]
+        missing_fields = [field for field in required_fields if not request.data.get(field)]
+        
+        if missing_fields:
+            return Response({"error": f"Missing required fields: {', '.join(missing_fields)}"}, status=HTTP_400_BAD_REQUEST)
+
+        password = request.data.get("password")
         serializer = UserSerializer(data=request.data)
         if serializer.is_valid():
             user = serializer.save()
-            user.is_active = True  # Ensure the user is active by default
-            user.save()  # Save the updated user instance
+            user.set_password(password)  # Set the provided password
+            user.is_active = True
+            user.is_staff = False
+            user.is_superuser = False
+            user.save()
             token, _ = Token.objects.get_or_create(user=user)
             return Response({"success": "Successful registration", "token": token.key}, status=HTTP_200_OK)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
