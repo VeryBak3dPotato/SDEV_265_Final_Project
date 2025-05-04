@@ -35,7 +35,7 @@ class BaseUserDetailView(APIView):
         return user
 
     def check_user_permissions(self, request, user):
-        # Allow admin users to view any user's details
+        
         if not request.user.is_staff and request.user.id != user.id:
             raise PermissionDenied("You do not have permission to access this user's information.")
 
@@ -63,8 +63,8 @@ class UserDetailView(BaseUserDetailView):
         content = {
             'id': user.id,
             'user': str(user),
-            'firstName': user.firstName,
-            'lastName': user.lastName,
+            # 'firstName': user.firstName,
+            # 'lastName': user.lastName,
             'zipCode': user.zipCode,
             'city': geo_location['name'],
             'allWeather': weather_data,
@@ -157,10 +157,10 @@ class UpdateZipCodeView(UserDetailView):
         self.check_user_permissions(request, user)
 
         new_zip_code = request.data.get("zipCode")
+
         if not new_zip_code:
             return Response({"error": "ZIP code is required."}, status=HTTP_400_BAD_REQUEST)
 
-        # Update the ZIP code
         user.zipCode = new_zip_code
         user.save()
 
@@ -171,7 +171,7 @@ class RegisterUser(APIView):
     permission_classes = []
 
     def post(self, request, format=None):
-        required_fields = ["email", "password", "firstName", "lastName", "zipCode"]
+        required_fields = ["email", "password", "zipCode"]
         missing_fields = [field for field in required_fields if not request.data.get(field)]
         
         if missing_fields:
@@ -179,6 +179,7 @@ class RegisterUser(APIView):
 
         password = request.data.get("password")
         serializer = UserSerializer(data=request.data)
+
         if serializer.is_valid():
             user = serializer.save()
             user.set_password(password)  # Set the provided password
@@ -187,7 +188,15 @@ class RegisterUser(APIView):
             user.is_superuser = False
             user.save()
             token, _ = Token.objects.get_or_create(user=user)
-            return Response({"success": "Successful registration", "token": token.key}, status=HTTP_200_OK)
+            return Response({
+                "success": "Successful registration",
+                "token": token.key,
+                "id": user.id,
+                "email": user.email,
+                # "firstName":user.firstName,
+                # "lastName": user.lastName,
+                "zipCode": user.zipCode
+            }, status=HTTP_200_OK)
         return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 class LoginView(APIView):
@@ -195,12 +204,17 @@ class LoginView(APIView):
     permission_classes = []
 
     def post(self, request, format=None):
-        username = request.data.get("username")
+        username = request.data.get("email")
         password = request.data.get("password")
         user = authenticate(username=username, password=password)
+
         if user is not None:
             token, _ = Token.objects.get_or_create(user=user)
-            return Response({"success": "Successful authentication", "token": token.key}, status=HTTP_200_OK)
+            return Response({
+                "success": "Successful authentication",
+                "token": token.key,
+                "id": user.id
+            }, status=HTTP_200_OK)
         else:
             return Response({"error": "Invalid credentials"}, status=HTTP_400_BAD_REQUEST)
 
@@ -216,3 +230,10 @@ class LogoutView(APIView):
             return Response({"message": "Successfully logged out."}, status=200)
         except Token.DoesNotExist:
             return Response({"error": "Token not found."}, status=400)
+        
+class HelloWorldView(APIView):
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request, format=None):
+        return Response({"message": "Hello, World!"}, status=HTTP_200_OK)
